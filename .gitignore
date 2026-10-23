@@ -1,0 +1,27 @@
+# Executables & large installer files (>100MB cannot be pushed to GitHub)
+*.exe
+*.msi
+*.zip
+*.tar.gz
+
+# Dependencies & Build outputs
+node_modules/
+dist/
+build/
+__pycache__/
+*.pyc
+
+# Environment & credentials
+.env
+.env.*
+!.env.example
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Logs
+*.log
