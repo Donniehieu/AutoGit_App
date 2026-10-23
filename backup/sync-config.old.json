@@ -1,0 +1,26 @@
+{
+  "settings": {
+    "git_path": "auto",
+    "auto_pull_before_push": true,
+    "default_branch": "main",
+    "github_token": "<TOKEN-DA-AN>",
+    "git_user_name": "NguyenHieuUnity",
+    "git_user_email": "47997858+Donniehieu@users.noreply.github.com"
+  },
+  "repositories": [
+    {
+      "name": "PO Data",
+      "local_path": "./po-data-main",
+      "remote_url": "https://github.com/Donniehieu/po-data.git",
+      "branch": "main",
+      "enabled": true
+    },
+    {
+      "name": "PO Dashboard",
+      "local_path": "./po-dashboard-main",
+      "remote_url": "https://github.com/Donniehieu/po-dashboard.git",
+      "branch": "main",
+      "enabled": true
+    }
+  ]
+}

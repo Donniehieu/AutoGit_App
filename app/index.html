@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git AutoSync Hub</title>
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --primary-light: #EEF2FF;
+      --success: #10B981;
+      --success-light: #ECFDF5;
+      --warning: #F59E0B;
+      --warning-light: #FFFBEB;
+      --danger: #EF4444;
+      --danger-light: #FEF2F2;
+      --terminal-bg: #0F172A;
+      --radius: 14px;
+      --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --shadow-hover: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); line-height: 1.5; padding: 24px; min-height: 100vh; }
+    
+    .container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+    
+    /* Header */
+    .header {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .brand-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, #4F46E5, #06B6D4);
+      display: flex; align-items: center; justify-content: center; color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    .brand-title { font-size: 22px; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+    .brand-desc { font-size: 13px; color: var(--text-muted); }
+    
+    .stats-bar { display: flex; gap: 16px; }
+    .stat-badge {
+      background: #F1F5F9; border-radius: 10px; padding: 8px 14px;
+      font-size: 13px; font-weight: 500; color: #334155; display: flex; align-items: center; gap: 8px;
+    }
+    .stat-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .btn-group { display: flex; gap: 10px; align-items: center; }
+    
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent; outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #4F46E5, #4338CA); color: white;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35); }
+    .btn-secondary { background: var(--card-bg); color: var(--text-main); border-color: var(--border); }
+    .btn-secondary:hover { background: #F8FAFC; border-color: #CBD5E1; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+    .btn-danger-ghost { background: transparent; color: var(--danger); border: none; }
+    .btn-danger-ghost:hover { background: var(--danger-light); border-radius: 8px; }
+    
+    /* Repo Cards Grid */
+    .section-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 12px; }
+    .repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 16px; }
+    
+    .repo-card {
+      background: var(--card-bg); border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--border); box-shadow: var(--shadow);
+      display: flex; flex-direction: column; justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .repo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); border-color: #CBD5E1; }
+    
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .card-title { font-size: 16px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .branch-pill {
+      background: var(--primary-light); color: var(--primary);
+      padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    }
+    
+    .card-path, .card-remote {
+      font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px; word-break: break-all;
+    }
+    .card-path code, .card-remote code {
+      background: #F1F5F9; padding: 2px 6px; border-radius: 6px; color: #334155; font-size: 12px;
+    }
+    
+    .card-actions {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 14px; pt-3; border-top: 1px solid #F1F5F9; padding-top: 12px;
+    }
+    
+    /* Terminal Box */
+    .terminal-card {
+      background: var(--terminal-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column;
+    }
+    .terminal-header {
+      background: #1E293B; padding: 12px 18px; display: flex;
+      justify-content: space-between; align-items: center; color: #94A3B8; font-size: 13px;
+    }
+    .terminal-dots { display: flex; gap: 6px; }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .t-red { background: #EF4444; } .t-yellow { background: #F59E0B; } .t-green { background: #10B981; }
+    
+    .terminal-body {
+      padding: 16px; height: 220px; overflow-y: auto; font-family: "Consolas", monospace;
+      font-size: 13px; color: #E2E8F0; line-height: 1.6; white-space: pre-wrap;
+    }
+    .log-ok { color: #34D399; }
+    .log-warn { color: #FBBF24; }
+    .log-err { color: #F87171; }
+    .log-info { color: #60A5FA; }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-box {
+      background: var(--card-bg); width: 100%; max-width: 540px;
+      border-radius: var(--radius); padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      border: 1px solid var(--border);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    .input-row { display: flex; gap: 8px; }
+    .form-control {
+      width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
+      font-size: 14px; color: var(--text-main); outline: none; transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1E293B; color: white; padding: 12px 20px;
+      border-radius: 10px; font-size: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      display: none; align-items: center; gap: 10px; z-index: 200;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+      </div>
+      <div>
+        <div class="brand-title">Git AutoSync Hub</div>
+        <div class="brand-desc">Trung tâm quản lý & đồng bộ đa repository GitHub thông minh</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-badge"><span class="dot"></span> Git: <span id="git-status-text">Đang kiểm tra...</span></div>
+      <div class="stat-badge" id="token-status-badge">Token: Đã cấu hình</div>
+    </div>
+  </div>
+
+  <!-- Action Toolbar -->
+  <div class="toolbar">
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-sync-all" onclick="syncAll()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        Đồng Bộ Tất Cả (Sync All)
+      </button>
+      <button class="btn btn-secondary" onclick="openAddModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Thêm Repo
+      </button>
+      <button class="btn btn-secondary" onclick="testAuth()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Kiểm Tra Quyền Token
+      </button>
+    </div>
+    <div>
+      <button class="btn btn-secondary" onclick="openConfigModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Cài Đặt Token / User
+      </button>
+    </div>
+  </div>
+
+  <!-- Repositories List -->
+  <div>
+    <div class="section-title">Danh sách Repositories được quản lý</div>
+    <div class="repo-grid" id="repo-grid">
+      <!-- Cards rendered via JS -->
+    </div>
+  </div>
+
+  <!-- Live Terminal -->
+  <div class="terminal-card">
+    <div class="terminal-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="terminal-dots">
+          <div class="t-dot t-red"></div>
+          <div class="t-dot t-yellow"></div>
+          <div class="t-dot t-green"></div>
+        </div>
+        <span>Nhật ký thời gian thực (Terminal Log)</span>
+      </div>
+      <div>
+        <button class="btn btn-sm btn-secondary" style="background:#334155; color:#F1F5F9; border:none;" onclick="clearLog()">Xóa Log</button>
+      </div>
+    </div>
+    <div class="terminal-body" id="terminal-output">[Sẵn sàng] Khởi động ứng dụng thành công.</div>
+  </div>
+</div>
+
+<!-- Modal Thêm Repo -->
+<div class="modal-backdrop" id="modal-add">
+  <div class="modal-box">
+    <div class="modal-title">Thêm Repository Mới</div>
+    <div class="form-group">
+      <label class="form-label">Tên đại diện:</label>
+      <input type="text" class="form-control" id="add-name" placeholder="Ví dụ: PO Analytics">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Thư mục trên máy tính:</label>
+      <div class="input-row">
+        <input type="text" class="form-control" id="add-path" placeholder="./po-analytics hoặc D:\Path">
+        <button class="btn btn-secondary" type="button" onclick="pickFolder()">Chọn...</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Link GitHub (Remote URL):</label>
+      <input type="text" class="form-control" id="add-url" placeholder="https://github.com/Donniehieu/repo.git">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nhánh (Branch):</label>
+      <input type="text" class="form-control" id="add-branch" value="main">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitAddRepo()">Lưu & Cấu Hình</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cấu hình -->
+<div class="modal-backdrop" id="modal-config">
+  <div class="modal-box">
+    <div class="modal-title">Cài Đặt Token & Tác Giả Git</div>
+    <div class="form-group">
+      <label class="form-label">GitHub Personal Access Token (PAT):</label>
+      <input type="password" class="form-control" id="cfg-token" placeholder="github_pat_...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Git User Name:</label>
+      <input type="text" class="form-control" id="cfg-user">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Git User Email:</label>
+      <input type="text" class="form-control" id="cfg-email">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-config')">Hủy</button>
+      <button class="btn btn-primary" onclick="submitConfig()">Lưu Cấu Hình</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast-msg"></div>
+
+<script>
+let currentConfig = null;
+
+function appendLog(msg, type='info') {
+  const terminal = document.getElementById('terminal-output');
+  const time = new Date().toLocaleTimeString();
+  let prefix = `[${time}] `;
+  terminal.innerText += `\n${prefix}${msg}`;
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('terminal-output').innerText = '[Sẵn sàng] Nhật ký đã được làm mới.';
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast-msg');
+  t.innerText = text;
+  t.style.display = 'flex';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+async function fetchConfig() {
+  try {
+    const res = await fetch('/api/config');
+    currentConfig = await res.json();
+    renderRepos(currentConfig.repositories);
+    document.getElementById('git-status-text').innerText = 'Đã kết nối (Git 2.55)';
+    if (currentConfig.settings.github_token) {
+      document.getElementById('token-status-badge').innerText = 'Token: Đã cấu hình';
+    }
+  } catch (err) {
+    appendLog('Lỗi tải cấu hình: ' + err.message, 'err');
+  }
+}
+
+function renderRepos(repos) {
+  const grid = document.getElementById('repo-grid');
+  grid.innerHTML = '';
+  if (!repos || repos.length === 0) {
+    grid.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Chưa có repository nào. Hãy bấm "Thêm Repo" để bắt đầu!</div>';
+    return;
+  }
+  repos.forEach((r, idx) => {
+    const card = document.createElement('div');
+    card.className = 'repo-card';
+    card.innerHTML = `
+      <div>
+        <div class="card-top">
+          <div class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            ${r.name}
+          </div>
+          <span class="branch-pill">${r.branch || 'main'}</span>
+        </div>
+        <div class="card-path">
+          <span style="min-width:70px;">Thư mục:</span>
+          <code>${r.local_path}</code>
+        </div>
+        <div class="card-remote">
+          <span style="min-width:70px;">GitHub:</span>
+          <code>${r.remote_url}</code>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm btn-primary" onclick="syncRepo('${r.name}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          Đồng bộ
+        </button>
+        <button class="btn btn-sm btn-danger-ghost" onclick="deleteRepo('${r.name}')">Xóa</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function syncAll() {
+  const btn = document.getElementById('btn-sync-all');
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  appendLog('>> Đang thực hiện đồng bộ tất cả repository...', 'info');
+  try {
+    const res = await fetch('/api/sync-all', { method: 'POST' });
+    const data = await res.json();
+    appendLog(data.output);
+    showToast('Hoàn tất đồng bộ!');
+  } catch (err) {
+    appendLog('Lỗi đồng bộ: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+
+async function syncRepo(name) {
+  appendLog(`>> Đang đồng bộ repository '${name}'...`, 'info');
+  try {
+    const res = await fetch('/api/sync-repo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    appendLog(data.output);
+    showToast(`Đã đồng bộ ${name}!`);
+  } catch (err) {
+    appendLog(`Lỗi đồng bộ ${name}: ` + err.message, 'err');
+  }
+}
+
+async function testAuth() {
+  appendLog('>> Đang kiểm tra token và quyền GitHub...', 'info');
+  try {
+    const res = await fetch('/api/test-token', { method: 'POST' });
+    const data = await res.json();
+    appendLog(data.output);
+    showToast('Kiểm tra quyền kết nối hoàn tất!');
+  } catch (err) {
+    appendLog('Lỗi kiểm tra quyền: ' + err.message, 'err');
+  }
+}
+
+function openAddModal() {
+  document.getElementById('modal-add').style.display = 'flex';
+}
+
+function openConfigModal() {
+  if (currentConfig && currentConfig.settings) {
+    document.getElementById('cfg-token').value = currentConfig.settings.github_token || '';
+    document.getElementById('cfg-user').value = currentConfig.settings.git_user_name || '';
+    document.getElementById('cfg-email').value = currentConfig.settings.git_user_email || '';
+  }
+  document.getElementById('modal-config').style.display = 'flex';
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+async function pickFolder() {
+  try {
+    const res = await fetch('/api/pick-folder', { method: 'POST' });
+    const data = await res.json();
+    if (data.path) {
+      document.getElementById('add-path').value = data.path;
+      if (!document.getElementById('add-name').value) {
+        const parts = data.path.split(/[\\/]/);
+        document.getElementById('add-name').value = parts[parts.length - 1] || 'New Repo';
+      }
+    }
+  } catch (err) {
+    appendLog('Không thể mở hộp thoại chọn thư mục: ' + err.message, 'err');
+  }
+}
+
+async function submitAddRepo() {
+  const name = document.getElementById('add-name').value.trim();
+  const path = document.getElementById('add-path').value.trim();
+  const url = document.getElementById('add-url').value.trim();
+  const branch = document.getElementById('add-branch').value.trim() || 'main';
+
+  if (!name || !path || !url) {
+    alert('Vui lòng điền đầy đủ thông tin!');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/add-repo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, local_path: path, remote_url: url, branch })
+    });
+    closeModal('modal-add');
+    appendLog(`Đã thêm thành công repository '${name}'`, 'ok');
+    fetchConfig();
+    showToast(`Đã thêm ${name}!`);
+  } catch (err) {
+    appendLog('Lỗi thêm repo: ' + err.message, 'err');
+  }
+}
+
+async function deleteRepo(name) {
+  if (!confirm(`Bạn có chắc muốn xóa repo '${name}' khỏi danh sách quản lý?`)) return;
+  try {
+    await fetch('/api/delete-repo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    appendLog(`Đã xóa repo '${name}' khỏi danh sách.`, 'info');
+    fetchConfig();
+    showToast(`Đã xóa ${name}`);
+  } catch (err) {
+    appendLog('Lỗi xóa repo: ' + err.message, 'err');
+  }
+}
+
+async function submitConfig() {
+  const token = document.getElementById('cfg-token').value.trim();
+  const user = document.getElementById('cfg-user').value.trim();
+  const email = document.getElementById('cfg-email').value.trim();
+
+  try {
+    await fetch('/api/save-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ github_token: token, git_user_name: user, git_user_email: email })
+    });
+    closeModal('modal-config');
+    appendLog('Đã cập nhật cài đặt Token và Git User thành công.', 'ok');
+    fetchConfig();
+    showToast('Đã lưu cấu hình!');
+  } catch (err) {
+    appendLog('Lỗi lưu cấu hình: ' + err.message, 'err');
+  }
+}
+
+// Initial load
+fetchConfig();
+</script>
+</body>
+</html>
