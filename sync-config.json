@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "git_path": "auto",
+    "auto_pull_before_push": true,
+    "default_branch": "main",
+    "github_token": "",
+    "github_token_enc": "AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAFiKOIcNiVkeFe5N5EC/d8gAAAAACAAAAAAAQZgAAAAEAACAAAABTjOldrVZEq3uuPQwfzjk8vC645U0zx4s48Td8qYRStAAAAAAOgAAAAAIAACAAAAAWoftcxzzFKYJpwWXVkJ6AhMWMmtJC/ym86jDWLe0v3GAAAADrNB7lO0eh53wTfSryXpRPLPESGCXrobAaGbz0qnz8IbFaRkLsjWbVQACka/qYoiclWVTtfev0lG24PjIA4aLhj/8TLFAmsHGKdDuenF+Rcd2niV4/xEYrs+dnwWR0Cj5AAAAA239Py5LsO3x1vuBsPaJfoAcc76cXYZGXY/pf3WJ+EyJDYzp3W9PVBDmqhSQBpLT0dMZvKzvQInuoAl8QvCq4uA==",
+    "git_user_name": "NguyenHieuUnity",
+    "git_user_email": "47997858+Donniehieu@users.noreply.github.com",
+    "auto_sync_minutes": 0,
+    "commit_message": "Auto sync: {time}"
+  },
+  "repositories": [
+    {
+      "name": "AutoGit_App",
+      "local_path": "D:\\PO\\App",
+      "remote_url": "https://github.com/Donniehieu/AutoGit_App.git",
+      "branch": "main",
+      "enabled": true
+    }
+  ]
+}
